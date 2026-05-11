@@ -7,7 +7,7 @@ export async function listStock(tenantId: string, opts: any) {
   // optionally filter lowStock
   const allProducts = await prisma.product.findMany({ where: { tenantId }, skip: (page - 1) * limit, take: limit });
   const total = await prisma.product.count({ where: { tenantId } });
-  const data = await Promise.all(allProducts.map(async (p) => {
+  const data = await Promise.all(allProducts.map(async (p: any) => {
     const sum = await prisma.stockMovement.aggregate({ where: { tenantId, productId: p.id }, _sum: { quantity: true } });
     const quantity = (sum._sum.quantity || 0) as number;
     return { productId: p.id, productName: p.name, quantity, minAlert: p.minStockAlert, isLow: quantity <= p.minStockAlert, unit: p.unit };

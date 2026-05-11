@@ -12,7 +12,7 @@ export async function listProducts(tenantId: string, opts: any) {
   ]);
   // augment products with stockQuantity computed from stock movements
   const items = await Promise.all(
-    data.map(async (p) => {
+    data.map(async (p: any) => {
       const sum = await prisma.stockMovement.aggregate({ where: { tenantId, productId: p.id }, _sum: { quantity: true } });
       const stockQuantity = (sum._sum.quantity || 0) as number;
       return { ...p, stockQuantity };

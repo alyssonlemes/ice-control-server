@@ -4,7 +4,7 @@ import { hashPassword } from '../../utils/hash';
 export async function createTenant(name: string, email: string, adminName: string, adminPassword: string) {
   // create tenant and admin user in a transaction
   const hashed = await hashPassword(adminPassword);
-  const created = await prisma.$transaction(async (tx) => {
+  const created = await prisma.$transaction(async (tx: any) => {
     const tenant = await tx.tenant.create({ data: { name, email } });
     const user = await tx.user.create({
       data: {

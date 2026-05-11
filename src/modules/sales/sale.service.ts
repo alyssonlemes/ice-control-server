@@ -22,7 +22,7 @@ export async function createSale(tenantId: string, payload: any) {
   const subtotal = payload.items.reduce((s: number, it: any) => s + it.unitPrice * it.quantity, 0);
   const total = subtotal - (payload.discount || 0);
 
-  const created = await prisma.$transaction(async (tx) => {
+  const created = await prisma.$transaction(async (tx: any) => {
     const sale = await tx.sale.create({ data: { tenantId, customerId: payload.customerId, subtotal, discount: payload.discount || 0, total, paymentMethod: payload.paymentMethod || 'cash', status: 'completed' } });
     for (const it of payload.items) {
       const product = await tx.product.findUnique({ where: { id: it.productId } });
@@ -39,7 +39,7 @@ export async function cancelSale(tenantId: string, saleId: string) {
   const sale = await prisma.sale.findFirst({ where: { id: saleId, tenantId }, include: { items: true } });
   if (!sale) throw { code: 'NOT_FOUND', message: 'Sale not found' };
   if (sale.status === 'cancelled') return sale;
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: any) => {
     await tx.sale.update({ where: { id: saleId }, data: { status: 'cancelled' } });
     for (const it of sale.items) {
       await tx.stockMovement.create({ data: { tenantId, productId: it.productId, type: 'in', quantity: Math.abs(it.quantity), reason: 'sale_cancel', supplierId: null } });

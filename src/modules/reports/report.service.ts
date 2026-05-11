@@ -8,7 +8,7 @@ export async function bestSellers(tenantId: string, opts: any) {
   if (start) where.sale = { createdAt: { gte: start } };
   if (end) where.sale = { createdAt: { lte: end } };
   const groups = await prisma.saleItem.groupBy({ by: ['productId', 'productName'], where: { tenantId }, _sum: { quantity: true, total: true }, orderBy: { _sum: { quantity: 'desc' } }, take });
-  return groups.map(g => ({ productId: g.productId, productName: g.productName, quantitySold: g._sum.quantity || 0, totalRevenue: g._sum.total || 0 }));
+  return groups.map((g: any) => ({ productId: g.productId, productName: g.productName, quantitySold: g._sum.quantity || 0, totalRevenue: g._sum.total || 0 }));
 }
 
 export async function salesByPeriod(tenantId: string, opts: any) {
