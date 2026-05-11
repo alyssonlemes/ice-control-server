@@ -17,7 +17,7 @@ router.post('/cashier/open', requirePermission('financial', 'write'), asyncHandl
   try {
     const parsed = openSchema.parse(req.body);
     const created = await service.openCashier(req.params.tenantId, parsed.openingBalance);
-    return res.status(201).json(created);
+    return res.status(200).json(created);
   } catch (err: any) {
     return res.status(400).json({ error: 'INVALID_PAYLOAD', message: err.message });
   }

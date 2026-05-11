@@ -1,8 +1,12 @@
 import prisma from '../../prisma';
 
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
 export async function getCashier(tenantId: string, dateStr?: string) {
   const date = dateStr ? new Date(dateStr) : new Date();
-  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const start = startOfDay(date);
   const end = new Date(start);
   end.setDate(end.getDate() + 1);
   const cashier = await prisma.cashier.findFirst({ where: { tenantId, date: start } });
@@ -10,21 +14,48 @@ export async function getCashier(tenantId: string, dateStr?: string) {
 }
 
 export async function openCashier(tenantId: string, openingBalance: number) {
-  const today = new Date();
-  const date = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const created = await prisma.cashier.create({ data: { tenantId, date, status: 'open', openedAt: new Date(), openingBalance } });
-  return created;
+  const now = new Date();
+  const date = startOfDay(now);
+
+  const cashier = await prisma.cashier.findFirst({ where: { tenantId, date } });
+
+  if (!cashier) {
+    return prisma.cashier.create({
+      data: { tenantId, date, status: 'open', openedAt: now, openingBalance }
+    });
+  }
+
+  if (cashier.status === 'open') {
+    return cashier;
+  }
+
+  return prisma.cashier.update({
+    where: { id: cashier.id },
+    data: { status: 'open', openedAt: now, closedAt: null, closingBalance: null }
+  });
 }
 
 export async function closeCashier(tenantId: string, dateStr?: string) {
   const date = dateStr ? new Date(dateStr) : new Date();
-  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const start = startOfDay(date);
   const end = new Date(start);
   end.setDate(end.getDate() + 1);
   const totalSales = await prisma.sale.aggregate({ where: { tenantId, createdAt: { gte: start, lt: end }, status: 'completed' }, _sum: { total: true } });
   const totalExpenses = await prisma.expense.aggregate({ where: { tenantId, createdAt: { gte: start, lt: end } }, _sum: { amount: true } });
-  const cashier = await prisma.cashier.updateMany({ where: { tenantId, date: start, status: 'open' }, data: { status: 'closed', closedAt: new Date(), closingBalance: (totalSales._sum.total || 0) - (totalExpenses._sum.amount || 0) } });
-  return prisma.cashier.findFirst({ where: { tenantId, date: start } });
+  const cashier = await prisma.cashier.findFirst({ where: { tenantId, date: start, status: 'open' } });
+
+  if (!cashier) {
+    throw { code: 'NOT_FOUND', message: 'Open cashier not found' };
+  }
+
+  return prisma.cashier.update({
+    where: { id: cashier.id },
+    data: {
+      status: 'closed',
+      closedAt: new Date(),
+      closingBalance: (totalSales._sum.total || 0) - (totalExpenses._sum.amount || 0)
+    }
+  });
 }
 
 export async function listExpenses(tenantId: string, opts: any) {

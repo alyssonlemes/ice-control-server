@@ -182,7 +182,7 @@
 ### Financial
 
 - **GET** `/api/v1/tenants/:tenantId/financial/cashier` — ver caixa (query `date`)
-- **POST** `/api/v1/tenants/:tenantId/financial/cashier/open` — abrir caixa
+- **POST** `/api/v1/tenants/:tenantId/financial/cashier/open` — abrir ou reabrir o caixa do dia
 
   Payload:
   ```json
