@@ -1,0 +1,46 @@
+# Node
+node_modules/
+dist/
+build/
+out/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Test coverage
+coverage/
+
+# Prisma / DB
+# Ignore local sqlite/db files but keep migrations
+*.db
+*.sqlite
+*.sqlite3
+
+# Misc
+.cache/
+*.tgz
+
+# Docker overrides and local configs
+docker-compose.override.yml
+.env.production

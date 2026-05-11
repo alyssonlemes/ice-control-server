@@ -1,0 +1,150 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Tenant {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  users     User[]
+  categories Category[]
+  products  Product[]
+  suppliers Supplier[]
+  customers Customer[]
+  sales     Sale[]
+  stockMovements StockMovement[]
+  expenses  Expense[]
+  cashiers  Cashier[]
+}
+
+model User {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String   @db.Uuid
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  name        String
+  email       String   @unique
+  password    String
+  permissions Json
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @db.Uuid
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  name      String
+  parentId  String?  @db.Uuid
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String   @db.Uuid
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+  name          String
+  categoryId    String?  @db.Uuid
+  costPrice     Float
+  salePrice     Float
+  unit          String
+  minStockAlert Int
+  description   String?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Supplier {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @db.Uuid
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  name      String
+  contactName String?
+  email     String?
+  phone     String?
+  paymentTerms String?
+  address   String?
+  active    Boolean @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Customer {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @db.Uuid
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+}
+
+model Sale {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @db.Uuid
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  customerId String?
+  subtotal  Float
+  discount  Float
+  total     Float
+  paymentMethod String
+  status    String
+  createdAt DateTime @default(now())
+  items     SaleItem[]
+}
+
+model SaleItem {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  saleId    String @db.Uuid
+  sale      Sale   @relation(fields: [saleId], references: [id])
+  productId String
+  productName String
+  quantity  Int
+  unitPrice Float
+  discount  Float
+  total     Float
+}
+
+model StockMovement {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @db.Uuid
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  productId String
+  type      String
+  quantity  Int
+  reason    String?
+  supplierId String?
+  createdAt DateTime @default(now())
+}
+
+model Expense {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @db.Uuid
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  description String
+  amount    Float
+  type      String
+  dueDate   DateTime?
+  paid      Boolean @default(false)
+  category  String?
+  createdAt DateTime @default(now())
+}
+
+model Cashier {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @db.Uuid
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  date      DateTime
+  status    String
+  openedAt  DateTime?
+  closedAt  DateTime?
+  openingBalance Float
+  closingBalance Float?
+}
